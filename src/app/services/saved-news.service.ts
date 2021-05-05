@@ -16,8 +16,13 @@ export class SavedNewsService {
     this.usersRef = this.db.collection('users');
     this.user$ = this.authService.getUserObservable();
     this.user$.subscribe((user) => {
-      this.userId = user.uid;
-      this.savedNews = user.savedNews;
+      if (user && user.uid) {
+        console.log(user);
+        this.userId = user.uid;
+      }
+      if (user && user.savedNews) {
+        this.savedNews = user.savedNews;
+      }
     });
   }
 
@@ -72,7 +77,7 @@ export class SavedNewsService {
   }
 
   isArticleSaved(article) {
-    if (this.savedNews.findIndex(a => a.url === article.url) !== -1) {
+    if (this.savedNews.findIndex((a) => a.url === article.url) !== -1) {
       return true;
     }
     return false;

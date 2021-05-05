@@ -11,12 +11,14 @@ import firebase from 'firebase/app';
 })
 export class AuthService {
   user$;
+  usersRef;
 
   constructor(
     private firebaseAuth: AngularFireAuth,
     private db: AngularFirestore,
     private router: Router
   ) {
+    this.usersRef = this.db.collection('users');
     this.user$ = this.firebaseAuth.authState.pipe(
       map((authState) => {
         return this.db
@@ -34,7 +36,7 @@ export class AuthService {
   signOut(): void {
     this.firebaseAuth.signOut().then(() => {
       this.router.navigate(['']);
-    })
+    });
   }
 
   private errorHandler(error) {
@@ -45,6 +47,18 @@ export class AuthService {
   async login() {
     const provider = new firebase.auth.GoogleAuthProvider();
     const user = await this.firebaseAuth.signInWithPopup(provider);
+    if (user.additionalUserInfo.isNewUser) {
+      const newUser = {
+        displayName: user.user.displayName,
+        email: user.user.email,
+        phoneNumber: user.user.phoneNumber,
+        photoURL: user.user.photoURL,
+        providerId: user.additionalUserInfo.providerId,
+        savedNews: [],
+        uid: user.user.uid,
+      };
+      this.usersRef.doc(newUser.uid).set(newUser);
+    }
     if (user) {
       this.router.navigate(['tabs/tab1']);
     }
